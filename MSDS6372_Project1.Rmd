@@ -1,0 +1,44 @@
+---
+title: "MSDA6372 Project 1"
+author: "Zack Bunn"
+date: '2022-05-31'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+setwd("C:/Users/zrb65/Documents/SMU Data/DS_6372/Project1_Summer2022/Project1_Summer2022")
+
+library(tseries)
+library(forecast)
+library(ggplot2)
+library(tidyverse)
+library(dataexplorer)
+
+lifeX<-read.csv("Life Expectancy Datav2.csv")
+
+ggplot(data = lifeX) +
+  geom_bar(mapping = aes(x = Status))
+
+ggplot(data = lifeX, mapping = aes(x = Immunization, colour = Status)) + geom_freqpoly(binwidth = 0.1)
+
+ggplot(data = lifeX, mapping = aes(x = Life.expectancy, colour = Status)) + geom_freqpoly(binwidth = 0.1)
+
+lifeX %>% create_report(y = "Life.expectancy")
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
