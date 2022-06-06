@@ -12,16 +12,30 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 ```{r}
-setwd("C:/Users/zrb65/Documents/SMU Data/DS_6372/Project1_Summer2022/Project1_Summer2022")
+setwd("C:/~/Project1_Summer2022")
 
 library(tseries)
 library(forecast)
 library(ggplot2)
 library(tidyverse)
-library(dataexplorer)
+library(DataExplorer)
+library(caret)
+library(pROC)
+library(mlbench)
 
 lifeX<-read.csv("Life Expectancy Datav2.csv")
 
+## replace empty values with NaN
+str(lifeX)
+lifeX_noNull <- lifeX
+lifeX_noNull[lifeX_noNull == ""] <- NaN
+lifeX_noNull
+lifeX_noNull[!is.na(lifeX_noNull$Life.expectancy),]
+
+#logging life expectancy
+lifeX$loglifeX <- log(lifeX$Life.expectancy) 
+
+##plots
 ggplot(data = lifeX) +
   geom_bar(mapping = aes(x = Status))
 
@@ -29,16 +43,40 @@ ggplot(data = lifeX, mapping = aes(x = Immunization, colour = Status)) + geom_fr
 
 ggplot(data = lifeX, mapping = aes(x = Life.expectancy, colour = Status)) + geom_freqpoly(binwidth = 0.1)
 
-lifeX %>% create_report(y = "Life.expectancy")
+#creating EDA report
+lifeX %>% create_report(y = "loglifeX")
+
+#set the test and training
+set.seed(123)
+ind <- sample(2, nrow(lifeX), replace = T, prob = c(0.7, 0.3))
+training <- lifeX[ind == 1,]
+test <- lifeX[ind ==2,]
+
+#building the model
+model <- lm(Life.expectancy ~ Schooling + Adult.Mortality + Income.composition.of.resources, data = training)
+
+model <- lm(loglifeX ~ Schooling + Adult.Mortality + Income.composition.of.resources + HIV.AIDS, data = training)
+
+summary(model)$r.squared
+
+
+
+##testing the manual model
+modelTest <- predict(model, test)
+print(modelTest)
+length(test$loglifeX)
+
+pvodf <- data.frame(Predicted = modelTest, Observed = test$loglifeX)
+print(pvodf)
+modelT <- lm(Observed ~ Predicted, data = pvodf)
+summary(modelT)$r.squared
+
+#finding MSE for Test
+(1/length(test$loglifeX))*(sum(modelT$residuals^2))
+AIC(modelT)
+
+#residual Plot
+ggplot(pvodf, aes(x=Predicted, y=Observed)) + geom_point() + geom_abline(intercept = 0, slope = 1, color = "red", size = 2)
+
 
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
