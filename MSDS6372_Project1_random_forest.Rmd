@@ -1,6 +1,6 @@
 ---
 title: "MSDA6372 Project 1"
-author: "Zack Bunn"
+author: "Will Butler"
 date: '2022-05-31'
 output: html_document
 ---
@@ -18,33 +18,13 @@ library(tseries)
 library(forecast)
 library(ggplot2)
 library(tidyverse)
-library(dataexplorer)
 
 lifeX<-read.csv("Life Expectancy Datav2.csv")
 
-ggplot(data = lifeX) +
-  geom_bar(mapping = aes(x = Status))
-
-ggplot(data = lifeX, mapping = aes(x = Immunization, colour = Status)) + geom_freqpoly(binwidth = 0.1)
-
-ggplot(data = lifeX, mapping = aes(x = Life.expectancy, colour = Status)) + geom_freqpoly(binwidth = 0.1)
-
-lifeX %>% create_report(y = "Life.expectancy")
 
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-
-## Use KNN regression
 
 install.packages("caret")
 install.packages("rlang")
@@ -75,57 +55,46 @@ training <- lifeX[ind == 1,]
 test <- lifeX[ind ==2,]
 ```
 
-# KNN Model
 
-``` {r}
-train_Control <- trainControl(method = "cv", number = 10)
-
-set.seed(321)
-
-fit <- train(Life.expectancy ~ ., data=training, method = "knn", tuneLength = 20, trControl = train_Control, preProc = c("center", "scale"), na.action = na.omit, importance = TRUE)
-
-
-fit
-ls(fit)
-plot(fit)
-varImp(fit)
-```
 
 ## rf model
 library(randomForest)
 
 ```{r}
 set.seed(321)
+
+train_Control <- trainControl(method = "cv", number = 10)
 rf <- randomForest(Life.expectancy~.,data=training, na.action = na.omit, trainControl= train_Control)
 
 print(rf)
 
 attributes(rf)
 
-rf$rsq
-
 ## importance of variables 
 imp <- as.data.frame(varImp(rf))
 imp <- data.frame(overall = imp$Overall, names = rownames(imp))
 imp[order(imp$overall,decreasing = T),]
-
 ```
 ## test the rf model
 ```{r}
 rfTest <- predict(rf, test)
-print(rfTest)
 length(test$Life.expectancy)
-summary(rfTest)$r.squared
+summary(rfTest)
 
 pvodf <- data.frame(Predicted = rfTest, Observed = test$Life.expectancy)
 print(pvodf)
 model <- lm(Observed ~ Predicted, data = pvodf)
 summary(model)$r.squared
+summary(model)
 ggplot(pvodf, aes(x=Predicted, y=Observed)) + geom_point() + geom_abline(intercept = 0, slope = 1, color = "red", size = 2)
+(mean(model$residuals^2))
+(1/length(test$Life.expectancy))*(sum(model$residuals^2))
+AIC(model)
 ```
 
 
-### model Preformance
+
+
 
 
 
