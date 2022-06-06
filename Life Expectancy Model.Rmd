@@ -1,0 +1,104 @@
+---
+title: "Project 1"
+author: "Jordan Eaddy"
+date: "6/3/2022"
+output: html_document
+---
+
+```{r data import}
+library(tidyverse)
+library(DataExplorer)
+library(naniar)
+library(janitor)
+install.packages("SmartEDA")
+library(SmartEDA)
+
+data<- data %>% 
+  clean_names(., "lower_camel")
+
+data <-read_csv(file.choose())
+str(data)
+
+data %>% 
+  create_report(
+  )
+
+gg_miss_which(data)
+
+data<-data %>%  filter(!is.na(`Life expectancy`))
+#Filtered out NA's in Life Expectancy
+
+data1$lifeExpectancy <- log(data1$lifeExpectancy)
+data$`HIV/AIDS` <-log(data$`HIV/AIDS`)
+
+
+```
+
+
+```{r}
+
+set.seed(123)
+splitperc = .85
+
+trainindy = sample(1:dim(data)[1],round(splitperc * dim(data)[1]))
+
+train = data[trainindy,]
+
+test = data[-trainindy,]
+#your test dataset
+#USE DIM(df) TO DO A SANITY CHECK
+dim(train)
+dim(test)
+
+library("ggpubr")
+ggscatter(data, x = "Schooling", y = "Life expectancy", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+ggscatter(data, x = "Adult Mortality", y = "Life expectancy", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+ggscatter(data, x = "Income composition of resources", y = "Life expectancy", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+
+ggscatter(data1, x = "hivAids", y = "lifeExpectancy", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+ggscatter(data, x = "Income composition of resources", y = "Life expectancy", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+
+```
+
+
+```{r Model creation}
+library(leaps)
+library(broom)
+install.packages("AICcmodavg")
+
+
+
+Model1<-lm(lifeExpectancy ~ adultMortality +  hivAids + diphtheria + gdp + thinness5_9Years + incomeCompositionOfResources + schooling, data = data )
+
+summary(Model1)
+
+par(mfrow = c(2, 2))
+plot(Model1)
+
+confint(Model1)
+
+anova <- aov(lifeExpectancy ~ adultMortality +  hivAids + diphtheria + gdp + thinness5_9Years + incomeCompositionOfResources + schooling, data = data )
+
+summary(anova)
+
+```
+
+
+```{r}
+```
+
